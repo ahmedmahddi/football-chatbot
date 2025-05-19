@@ -4,50 +4,110 @@
 export const mockLiveMatches = [
   {
     id: 10001,
-    homeTeam: { name: "Manchester United", shortName: "MUN" },
-    awayTeam: { name: "Liverpool", shortName: "LIV" },
-    tournament: { uniqueTournament: { name: "Premier League" } },
-    status: { description: "78'", code: 1 },
+    homeTeam: { id: 1, name: "Manchester United", shortName: "MUN" },
+    awayTeam: { id: 2, name: "Liverpool", shortName: "LIV" },
+    tournament: {
+      id: 1,
+      name: "Premier League",
+      uniqueTournament: {
+        id: 1,
+        name: "Premier League",
+        category: {
+          id: 1,
+          name: "England",
+          slug: "england",
+        },
+      },
+    },
+    status: { description: "78'", code: 1, type: "inprogress" },
     homeScore: { current: 2 },
     awayScore: { current: 1 },
   },
   {
     id: 10002,
-    homeTeam: { name: "Barcelona", shortName: "BAR" },
-    awayTeam: { name: "Real Madrid", shortName: "RMA" },
-    tournament: { uniqueTournament: { name: "La Liga" } },
-    status: { description: "12'", code: 1 },
+    homeTeam: { id: 3, name: "Barcelona", shortName: "BAR" },
+    awayTeam: { id: 4, name: "Real Madrid", shortName: "RMA" },
+    tournament: {
+      id: 2,
+      name: "La Liga",
+      uniqueTournament: {
+        id: 2,
+        name: "La Liga",
+        category: {
+          id: 2,
+          name: "Spain",
+          slug: "spain",
+        },
+      },
+    },
+    status: { description: "12'", code: 1, type: "inprogress" },
     homeScore: { current: 0 },
     awayScore: { current: 0 },
   },
   {
     id: 10003,
-    homeTeam: { name: "Bayern Munich", shortName: "BAY" },
-    awayTeam: { name: "Borussia Dortmund", shortName: "DOR" },
-    tournament: { uniqueTournament: { name: "Bundesliga" } },
-    status: { description: "HT", code: 1 },
+    homeTeam: { id: 5, name: "Bayern Munich", shortName: "BAY" },
+    awayTeam: { id: 6, name: "Borussia Dortmund", shortName: "DOR" },
+    tournament: {
+      id: 3,
+      name: "Bundesliga",
+      uniqueTournament: {
+        id: 3,
+        name: "Bundesliga",
+        category: {
+          id: 3,
+          name: "Germany",
+          slug: "germany",
+        },
+      },
+    },
+    status: { description: "HT", code: 1, type: "inprogress" },
     homeScore: { current: 3 },
     awayScore: { current: 2 },
   },
   {
     id: 10004,
-    homeTeam: { name: "PSG", shortName: "PSG" },
-    awayTeam: { name: "Marseille", shortName: "MAR" },
-    tournament: { uniqueTournament: { name: "Ligue 1" } },
-    status: { description: "56'", code: 1 },
+    homeTeam: { id: 7, name: "PSG", shortName: "PSG" },
+    awayTeam: { id: 8, name: "Marseille", shortName: "MAR" },
+    tournament: {
+      id: 4,
+      name: "Ligue 1",
+      uniqueTournament: {
+        id: 4,
+        name: "Ligue 1",
+        category: {
+          id: 4,
+          name: "France",
+          slug: "france",
+        },
+      },
+    },
+    status: { description: "56'", code: 1, type: "inprogress" },
     homeScore: { current: 1 },
     awayScore: { current: 1 },
   },
   {
     id: 10005,
-    homeTeam: { name: "Juventus", shortName: "JUV" },
-    awayTeam: { name: "AC Milan", shortName: "MIL" },
-    tournament: { uniqueTournament: { name: "Serie A" } },
-    status: { description: "89'", code: 1 },
+    homeTeam: { id: 9, name: "Juventus", shortName: "JUV" },
+    awayTeam: { id: 10, name: "AC Milan", shortName: "MIL" },
+    tournament: {
+      id: 5,
+      name: "Serie A",
+      uniqueTournament: {
+        id: 5,
+        name: "Serie A",
+        category: {
+          id: 5,
+          name: "Italy",
+          slug: "italy",
+        },
+      },
+    },
+    status: { description: "89'", code: 1, type: "inprogress" },
     homeScore: { current: 0 },
     awayScore: { current: 2 },
   },
-]
+];
 
 // Mock match statistics
 export const mockMatchStatistics = {
@@ -96,7 +156,7 @@ export const mockMatchStatistics = {
     yellowCards: { home: 3, away: 1 },
     redCards: { home: 1, away: 0 },
   },
-}
+};
 
 // Mock lineups
 export const mockLineups = {
@@ -134,7 +194,7 @@ export const mockLineups = {
       ],
     },
   },
-}
+};
 
 // Helper function to get match details
 export const getMatchDetails = (matchId: number) => {
@@ -142,7 +202,8 @@ export const getMatchDetails = (matchId: number) => {
   // For now, we'll return mock data
   return {
     id: matchId,
-    statistics: mockMatchStatistics[matchId as keyof typeof mockMatchStatistics],
+    statistics:
+      mockMatchStatistics[matchId as keyof typeof mockMatchStatistics],
     lineups: mockLineups[matchId as keyof typeof mockLineups],
-  }
-}
+  };
+};

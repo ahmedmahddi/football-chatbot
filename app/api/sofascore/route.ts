@@ -1,48 +1,48 @@
-import { NextResponse } from "next/server"
-import { mockLiveMatches, mockMatchStatistics } from "@/lib/football-data"
+import { NextResponse } from "next/server";
+import { mockLiveMatches, mockMatchStatistics } from "@/lib/football-data";
 
 // This is a server-side route handler that acts as a proxy to SofaScore
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url)
-  const endpoint = searchParams.get("endpoint") || ""
-  const useMock = searchParams.get("useMock") === "true"
+  const { searchParams } = new URL(request.url);
+  const endpoint = searchParams.get("endpoint") || "";
+  const useMock = searchParams.get("useMock") === "true";
 
   // If mock data is explicitly requested, use it
   if (useMock) {
-    console.log("Mock data explicitly requested")
-    return handleMockData(endpoint)
+    console.log("Mock data explicitly requested");
+    return handleMockData(endpoint);
   }
 
   try {
-    console.log(`Fetching from SofaScore: ${endpoint}`)
+    console.log(`Fetching from SofaScore: ${endpoint}`);
 
     // Map our simplified endpoints to the actual SofaScore API endpoints
-    let apiUrl = ""
-    let fallbackUrl = ""  // Declare fallback URL variable
+    let apiUrl = "";
+    let fallbackUrl = ""; // Declare fallback URL variable
 
     if (endpoint === "live-matches") {
-      apiUrl = "http://www.sofascore.com/api/v1/sport/football/events/live"
+      apiUrl = "http://www.sofascore.com/api/v1/sport/football/events/live";
     } else if (endpoint.startsWith("match/")) {
-      const matchId = endpoint.split("/")[1]
-      apiUrl = `http://www.sofascore.com/api/v1/event/${matchId}`
+      const matchId = endpoint.split("/")[1];
+      apiUrl = `http://www.sofascore.com/api/v1/event/${matchId}`;
     } else if (endpoint.startsWith("match-statistics/")) {
-      const matchId = endpoint.split("/")[1]
+      const matchId = endpoint.split("/")[1];
       // Updated endpoint URL structure for match statistics
-      apiUrl = `http://www.sofascore.com/api/v1/event/${matchId}/statistics`
-      
+      apiUrl = `http://www.sofascore.com/api/v1/event/${matchId}/statistics`;
+
       // Fallback URL in case the primary one fails
-      fallbackUrl = `http://www.sofascore.com/api/v1/match/${matchId}/statistics`
+      fallbackUrl = `http://www.sofascore.com/api/v1/match/${matchId}/statistics`;
     } else if (endpoint.startsWith("match-lineups/")) {
-      const matchId = endpoint.split("/")[1]
-      apiUrl = `http://www.sofascore.com/api/v1/event/${matchId}/lineups`
+      const matchId = endpoint.split("/")[1];
+      apiUrl = `http://www.sofascore.com/api/v1/event/${matchId}/lineups`;
     } else if (endpoint.startsWith("match-events/")) {
-      const matchId = endpoint.split("/")[1]
-      apiUrl = `http://www.sofascore.com/api/v1/event/${matchId}/incidents`
+      const matchId = endpoint.split("/")[1];
+      apiUrl = `http://www.sofascore.com/api/v1/event/${matchId}/incidents`;
     } else {
-      return NextResponse.json({ error: "Unknown endpoint" }, { status: 400 })
+      return NextResponse.json({ error: "Unknown endpoint" }, { status: 400 });
     }
 
-    console.log(`Full URL: ${apiUrl}`)
+    console.log(`Full URL: ${apiUrl}`);
 
     const response = await fetch(apiUrl, {
       headers: {
@@ -55,14 +55,16 @@ export async function GET(request: Request) {
         Origin: "https://www.sofascore.com",
       },
       cache: "no-store", // Don't cache to ensure fresh data
-    })
+    });
 
     if (!response.ok) {
-      console.error(`SofaScore API error: ${response.status} ${response.statusText}`)
-      
+      console.error(
+        `SofaScore API error: ${response.status} ${response.statusText}`
+      );
+
       // If we're trying to get match statistics and the primary URL failed, try the fallback URL
       if (endpoint.startsWith("match-statistics/") && fallbackUrl) {
-        console.log(`Trying fallback URL for match statistics: ${fallbackUrl}`)
+        console.log(`Trying fallback URL for match statistics: ${fallbackUrl}`);
         const fallbackResponse = await fetch(fallbackUrl, {
           headers: {
             "User-Agent":
@@ -73,81 +75,124 @@ export async function GET(request: Request) {
             Origin: "https://www.sofascore.com",
           },
           cache: "no-store",
-        })
-        
+        });
+
         if (fallbackResponse.ok) {
-          const data = await fallbackResponse.json()
-          return NextResponse.json(data)
+          const data = await fallbackResponse.json();
+          return NextResponse.json(data);
         }
-        
-        console.error(`Fallback URL also failed: ${fallbackResponse.status} ${fallbackResponse.statusText}`)
+
+        console.error(
+          `Fallback URL also failed: ${fallbackResponse.status} ${fallbackResponse.statusText}`
+        );
       }
-      
-      throw new Error(`SofaScore API responded with status: ${response.status}`)
+
+      throw new Error(
+        `SofaScore API responded with status: ${response.status}`
+      );
     }
 
-    const data = await response.json()
-    return NextResponse.json(data)
+    const data = await response.json();
+    return NextResponse.json(data);
   } catch (error) {
-    console.error("Error fetching from SofaScore:", error)
+    console.error("Error fetching from SofaScore:", error);
 
     // Fall back to mock data if the API request fails
-    console.log("Falling back to mock data due to API error")
-    return handleMockData(endpoint)
+    console.log("Falling back to mock data due to API error");
+    return handleMockData(endpoint);
   }
 }
 
 // Helper function to handle mock data requests
 async function handleMockData(endpoint: string) {
   // Add artificial delay to simulate network request
-  await new Promise((resolve) => setTimeout(resolve, 300))
+  await new Promise(resolve => setTimeout(resolve, 300));
 
   try {
     // Handle different endpoint types
     if (endpoint === "live-matches") {
-      // For SofaScore, the response format is different
+      // Transform mock data to ensure proper structure
+      const structuredMatches = mockLiveMatches.map(match => ({
+        id: match.id,
+        homeTeam: {
+          id: match.homeTeam.id,
+          name: match.homeTeam.name,
+          shortName: match.homeTeam.shortName,
+        },
+        awayTeam: {
+          id: match.awayTeam.id,
+          name: match.awayTeam.name,
+          shortName: match.awayTeam.shortName,
+        },
+        homeScore: {
+          current: match.homeScore.current,
+          display: match.homeScore.current,
+          period1: 0,
+          period2: 0,
+          normaltime: match.homeScore.current,
+        },
+        awayScore: {
+          current: match.awayScore.current,
+          display: match.awayScore.current,
+          period1: 0,
+          period2: 0,
+          normaltime: match.awayScore.current,
+        },
+        tournament: match.tournament,
+        status: match.status,
+      }));
+
       return NextResponse.json({
-        events: mockLiveMatches,
+        events: structuredMatches,
         usingMockData: true,
-      })
+      });
     }
 
     // Match details endpoint (e.g., match/10001)
     else if (endpoint.startsWith("match/")) {
-      const matchId = Number.parseInt(endpoint.split("/")[1])
+      const matchId = Number.parseInt(endpoint.split("/")[1]);
 
       if (isNaN(matchId)) {
-        return NextResponse.json({ error: "Invalid match ID" }, { status: 400 })
+        return NextResponse.json(
+          { error: "Invalid match ID" },
+          { status: 400 }
+        );
       }
 
       // Find the match
-      const match = mockLiveMatches.find((m) => m.id === matchId)
+      const match = mockLiveMatches.find(m => m.id === matchId);
 
       if (!match) {
-        return NextResponse.json({ error: "Match not found" }, { status: 404 })
+        return NextResponse.json({ error: "Match not found" }, { status: 404 });
       }
 
       return NextResponse.json({
         event: match,
         usingMockData: true,
-      })
+      });
     }
 
     // Match statistics endpoint (e.g., match-statistics/10001)
     else if (endpoint.startsWith("match-statistics/")) {
-      const matchId = Number.parseInt(endpoint.split("/")[1])
+      const matchId = Number.parseInt(endpoint.split("/")[1]);
 
       if (isNaN(matchId)) {
-        return NextResponse.json({ error: "Invalid match ID" }, { status: 400 })
+        return NextResponse.json(
+          { error: "Invalid match ID" },
+          { status: 400 }
+        );
       }
 
       // Get statistics for the match
-      const statistics = mockMatchStatistics[matchId as keyof typeof mockMatchStatistics]
+      const statistics =
+        mockMatchStatistics[matchId as keyof typeof mockMatchStatistics];
 
       // If we don't have mock data for this specific match ID, create some default statistics
       // This ensures we always return something even for unknown match IDs
       if (!statistics) {
-        console.log(`No mock statistics found for match ID ${matchId}, using default statistics`)
+        console.log(
+          `No mock statistics found for match ID ${matchId}, using default statistics`
+        );
         const defaultStats = {
           possession: { home: 50, away: 50 },
           shots: { home: 10, away: 10 },
@@ -156,8 +201,8 @@ async function handleMockData(endpoint: string) {
           fouls: { home: 10, away: 10 },
           yellowCards: { home: 1, away: 1 },
           redCards: { home: 0, away: 0 },
-        }
-        
+        };
+
         return NextResponse.json({
           statistics: {
             periods: {
@@ -195,7 +240,7 @@ async function handleMockData(endpoint: string) {
           },
           usingMockData: true,
           isDefaultData: true,
-        })
+        });
       }
 
       return NextResponse.json({
@@ -234,15 +279,18 @@ async function handleMockData(endpoint: string) {
           },
         },
         usingMockData: true,
-      })
+      });
     }
 
     // Match lineups endpoint (e.g., match-lineups/10001)
     else if (endpoint.startsWith("match-lineups/")) {
-      const matchId = Number.parseInt(endpoint.split("/")[1])
+      const matchId = Number.parseInt(endpoint.split("/")[1]);
 
       if (isNaN(matchId)) {
-        return NextResponse.json({ error: "Invalid match ID" }, { status: 400 })
+        return NextResponse.json(
+          { error: "Invalid match ID" },
+          { status: 400 }
+        );
       }
 
       // For mock data, we'll return a simple lineup structure
@@ -278,15 +326,18 @@ async function handleMockData(endpoint: string) {
           ],
         },
         usingMockData: true,
-      })
+      });
     }
 
     // Match events endpoint (e.g., match-events/10001)
     else if (endpoint.startsWith("match-events/")) {
-      const matchId = Number.parseInt(endpoint.split("/")[1])
+      const matchId = Number.parseInt(endpoint.split("/")[1]);
 
       if (isNaN(matchId)) {
-        return NextResponse.json({ error: "Invalid match ID" }, { status: 400 })
+        return NextResponse.json(
+          { error: "Invalid match ID" },
+          { status: 400 }
+        );
       }
 
       // For mock data, we'll return some sample events
@@ -329,15 +380,18 @@ async function handleMockData(endpoint: string) {
           },
         ],
         usingMockData: true,
-      })
+      });
     }
 
     // Unknown endpoint
     else {
-      return NextResponse.json({ error: "Unknown endpoint" }, { status: 400 })
+      return NextResponse.json({ error: "Unknown endpoint" }, { status: 400 });
     }
   } catch (error) {
-    console.error("Error in mock SofaScore API:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    console.error("Error in mock SofaScore API:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }
